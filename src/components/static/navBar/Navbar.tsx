@@ -1,86 +1,108 @@
-import { AppBar, Toolbar, Typography } from '@material-ui/core';
-import { Box } from '@mui/material'
-import React from 'react';
-import { Link, useNavigate} from 'react-router-dom'
-import './Navbar.css'
-import useLocalStorage from 'react-use-localstorage';
-import { useDispatch, useSelector } from 'react-redux';
-import { TokenState } from '../../../store/tokens/tokensReducer';
-import { addToken } from '../../../store/tokens/actions';
+import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { buscaId, deleteId } from '../../../services/Service'
+import { TokenState } from '../../../store/tokens/tokensReducer'
+import { Box, Button, Card, CardActions, CardContent, Typography } from '@material-ui/core'
+import Postagem from '../../../models/Postagem'
+import './deletaPost.css'
 
-function Navbar() {
+export default function DeletarPost() {
+
+    const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
+
     const token = useSelector<TokenState, TokenState["tokens"]>(
         (state) => state.tokens
-    )
-    let navigate = useNavigate();
-    const dispatch = useDispatch();
-    
-    function goLogout(){
-        dispatch(addToken(''));
-        alert("Usuário deslogado")
-       navigate('/login')
+    );
+
+    const [postagem, setPost] = useState<Postagem>()
+
+    useEffect(() => {
+        if (token == "") {
+            toast.error('Opss precisa estar logado!', {
+                position: 'top-right',
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
+                theme: "colored",
+                progress: undefined,
+            })
+            navigate("/login")
+        }
+    }, [token])
+
+    useEffect(() => {
+        if (id !== undefined) {
+            findById(id)
+        }
+    }, [id])
+
+    async function findById(id: string) {
+        buscaId(`/postagens/${id}`, setPost, {
+            headers: {
+                'Authorization': token
+            }
+        })
     }
 
-    var navbarComponent;
-
-    if(token != ""){
-
-        navbarComponent =  
-         <AppBar position="static">
-        <Toolbar variant="dense">
-            <Box className='cursor'>
-                <Typography variant="h5" color="inherit">
-                    BlogPessoal
-                </Typography>
-            </Box>
-
-            <Box display="flex" justifyContent="start">
-                <Link to="/home" className="text-decorator-none">
-                    <Box mx={1} className='cursor'>
-                        <Typography variant="h6" color="inherit">
-                            home
-                        </Typography>
-                    </Box>
-                </Link>
-                <Link to="/posts" className="text-decorator-none">
-                    <Box mx={1} className='cursor'>
-                        <Typography variant="h6" color="inherit">
-                            postagens
-                        </Typography>
-                    </Box>
-                </Link>
-                <Link to="/temas" className="text-decorator-none">
-                <Box mx={1} className='cursor'>
-                    <Typography variant="h6" color="inherit">
-                        temas
-                    </Typography>
-                </Box>
-                </Link>
-                <Link to="/formularioTema" className="text-decorator-none">
-                <Box mx={1} className='cursor'>
-                    <Typography variant="h6" color="inherit">
-                        cadastrar tema
-                    </Typography>
-                </Box>
-                </Link>
-              
-                    <Box mx={1} className='cursor' onClick={goLogout}>
-                        <Typography variant="h6" color="inherit">
-                            logout
-                        </Typography>
-                    </Box>
-                
-            </Box>
-
-        </Toolbar>
-    </AppBar>
+    function sim() {
+        navigate('/posts')
+        deleteId(`/postagens/${id}`, {
+            headers: {
+                'Authorization': token
+            }
+        });
+        toast.success('Post Deletado com sucesso', {
+            position: 'top-right',
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: false,
+            theme: "colored",
+            progress: undefined,
+        })
     }
+
+    function nao() {
+        navigate('/posts')
+    }
+
     return (
         <>
-          {navbarComponent}
+            <Box m={2}>
+                <Card variant="outlined" >
+                    <CardContent>
+                        <Box justifyContent="center">
+                            <Typography color="textSecondary" gutterBottom>
+                                Deseja deletar a Postagem:
+                            </Typography>
+                            <Typography color="textSecondary" >
+                                {postagem?.titulo}
+                            </Typography>
+                        </Box>
+
+                    </CardContent>
+                    <CardActions>
+                        <Box display="flex" justifyContent="start" ml={1.0} mb={2} >
+                            <Box mx={2}>
+                                <Button onClick={sim} variant="contained" className="marginLeft" size='large' color="primary">
+                                    Sim
+                                </Button>
+                            </Box>
+                            <Box>
+                                <Button onClick={nao} variant="contained" size='large' color="secondary">
+                                    Não
+                                </Button>
+                            </Box>
+                        </Box>
+                    </CardActions>
+                </Card>
+            </Box>
         </>
     )
 }
-toast.info
-
-export default Navbar;
