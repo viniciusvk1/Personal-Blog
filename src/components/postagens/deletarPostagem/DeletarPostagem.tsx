@@ -1,85 +1,108 @@
-import React, { useEffect, useState } from 'react'
-import {Typography, Button, Card, CardActions, CardContent } from "@material-ui/core"
-import {Box} from '@mui/material';
-import './DeletarPostagem.css';
-import {useNavigate, useParams } from 'react-router-dom'
-import useLocalStorage from 'react-use-localstorage';
-import Postagem from '../../../models/Postagem';
-import { buscaId, deleteId } from '../../../services/Service';
+import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { buscaId, deleteId } from '../../../services/Service'
+import { TokenState } from '../../../store/tokens/tokensReducer'
+import { Box, Button, Card, CardActions, CardContent, Typography } from '@material-ui/core'
+import Postagem from '../../../models/Postagem'
+import './deletaPost.css'
 
-function DeletarPostagem() {
-    let navigate = useNavigate();
-    const { id } = useParams<{id: string}>();
-    const [token, setToken] = useLocalStorage('token');
-    const [post, setPosts] = useState<Postagem>()
+export default function DeletarPost() {
+
+    const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
+
+    const token = useSelector<TokenState, TokenState["tokens"]>(
+        (state) => state.tokens
+    );
+
+    const [postagem, setPost] = useState<Postagem>()
 
     useEffect(() => {
         if (token == "") {
-            alert("Você precisa estar logado")
+            toast.error('Opss precisa estar logado!', {
+                position: 'top-right',
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
+                theme: "colored",
+                progress: undefined,
+            })
             navigate("/login")
-    
         }
     }, [token])
 
-    useEffect(() =>{
-        if(id !== undefined){
+    useEffect(() => {
+        if (id !== undefined) {
             findById(id)
         }
     }, [id])
 
     async function findById(id: string) {
-        buscaId(`/postagens/${id}`, setPosts, {
+        buscaId(`/postagens/${id}`, setPost, {
             headers: {
-              'Authorization': token
-            }
-          })
-        }
-
-        function sim() {
-          navigate('/posts')
-            deleteId(`/postagens/${id}`, {
-              headers: {
                 'Authorization': token
-              }
-            });
-            alert('Postagem deletada com sucesso');
-          }
-        
-          function nao() {
-            navigate('/posts')
-          }
-  return (
-    <>
-      <Box m={2}>
-        <Card variant="outlined" >
-          <CardContent>
-            <Box justifyContent="center">
-              <Typography color="textSecondary" gutterBottom>
-                Deseja deletar a Postagem:
-              </Typography>
-              <Typography color="textSecondary" >
-              {post?.titulo}
-              </Typography>
-            </Box>
+            }
+        })
+    }
 
-          </CardContent>
-          <CardActions>
-            <Box display="flex" justifyContent="start" ml={1.0} mb={2} >
-              <Box mx={2}>
-              <Button onClick={sim} variant="contained" className="marginLeft" size='large' color="primary">
-                Sim
-              </Button>
-              </Box>
-              <Box>
-              <Button  onClick={nao} variant="contained" size='large' color="secondary">
-                Não
-              </Button>
-              </Box>
+    function sim() {
+        navigate('/posts')
+        deleteId(`/postagens/${id}`, {
+            headers: {
+                'Authorization': token
+            }
+        });
+        toast.success('Post Deletado com sucesso', {
+            position: 'top-right',
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: false,
+            theme: "colored",
+            progress: undefined,
+        })
+    }
+
+    function nao() {
+        navigate('/posts')
+    }
+
+    return (
+        <>
+            <Box m={2}>
+                <Card variant="outlined" >
+                    <CardContent>
+                        <Box justifyContent="center">
+                            <Typography color="textSecondary" gutterBottom>
+                                Deseja deletar a Postagem:
+                            </Typography>
+                            <Typography color="textSecondary" >
+                                {postagem?.titulo}
+                            </Typography>
+                        </Box>
+
+                    </CardContent>
+                    <CardActions>
+                        <Box display="flex" justifyContent="start" ml={1.0} mb={2} >
+                            <Box mx={2}>
+                                <Button onClick={sim} variant="contained" className="marginLeft" size='large' color="primary">
+                                    Sim
+                                </Button>
+                            </Box>
+                            <Box>
+                                <Button onClick={nao} variant="contained" size='large' color="secondary">
+                                    Não
+                                </Button>
+                            </Box>
+                        </Box>
+                    </CardActions>
+                </Card>
             </Box>
-          </CardActions>
-        </Card>
-      </Box>
-    </>
-  );
+        </>
+    )
 }
-export default DeletarPostagem;
