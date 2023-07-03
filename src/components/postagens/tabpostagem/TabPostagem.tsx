@@ -8,6 +8,7 @@ import './TabPostagem.css';
 
 function TabPostagem() {
     const [value, setValue] = useState('1')
+    // eslint-disable-next-line @typescript-eslint/ban-types
     function handleChange(event: React.ChangeEvent<{}>, newValue: string){
         setValue(newValue);
     }
