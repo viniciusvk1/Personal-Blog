@@ -1,62 +1,24 @@
+import { Box } from '@mui/material';
 import { toast } from 'react-toastify'
-import { useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { buscaId, deleteId } from '../../../services/Service'
-import { TokenState } from '../../../store/tokens/tokensReducer'
-import { Box, Button, Card, CardActions, CardContent, Typography } from '@material-ui/core'
-import Postagem from '../../../models/Postagem'
-import './deletaPost.css'
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToken } from '../../../store/tokens/actions';
+import { AppBar, Toolbar, Typography } from '@material-ui/core';
+import { TokenState } from '../../../store/tokens/tokensReducer';
+import ImgIcon from '../../../assets/img/icons8-blog.svg';
+import './navbar.css';
 
-export default function DeletarPost() {
-
-    const navigate = useNavigate();
-    const { id } = useParams<{ id: string }>();
+export default function NavBar() {
 
     const token = useSelector<TokenState, TokenState["tokens"]>(
         (state) => state.tokens
     );
+    const dispatch = useDispatch();
+    const navigator = useNavigate();
 
-    const [postagem, setPost] = useState<Postagem>()
-
-    useEffect(() => {
-        if (token == "") {
-            toast.error('Opss precisa estar logado!', {
-                position: 'top-right',
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-                theme: "colored",
-                progress: undefined,
-            })
-            navigate("/login")
-        }
-    }, [token])
-
-    useEffect(() => {
-        if (id !== undefined) {
-            findById(id)
-        }
-    }, [id])
-
-    async function findById(id: string) {
-        buscaId(`/postagens/${id}`, setPost, {
-            headers: {
-                'Authorization': token
-            }
-        })
-    }
-
-    function sim() {
-        navigate('/posts')
-        deleteId(`/postagens/${id}`, {
-            headers: {
-                'Authorization': token
-            }
-        });
-        toast.success('Post Deletado com sucesso', {
+    function goLogout() {
+        dispatch(addToken(''))
+        toast.info('Usuario deslogado!', {
             position: 'top-right',
             autoClose: 2000,
             hideProgressBar: false,
@@ -66,43 +28,63 @@ export default function DeletarPost() {
             theme: "colored",
             progress: undefined,
         })
+        navigator('/login')
     }
 
-    function nao() {
-        navigate('/posts')
+    let navbarComponent;
+
+    if (token !== '') {
+        navbarComponent = <AppBar position="static" className='navBar'>
+            <Toolbar variant="dense">
+                <Link to={`/home`}>
+                    <Box className='cursor' >
+                        <Typography variant="h5" color="inherit">
+                            <img src={ImgIcon} alt="" />
+                        </Typography>
+                    </Box>
+                </Link>
+
+
+                <Box display="flex" justifyContent="end">
+                    <Link to={`/home`} className='cursor'>
+                        <Box mx={1} >
+                            <Typography variant="h6" color="inherit">
+                                Home
+                            </Typography>
+                        </Box>
+                    </Link>
+
+                    <Link to={`/temas`} className='cursor'>
+                        <Box mx={1} >
+                            <Typography variant="h6" color="inherit">
+                                Temas
+                            </Typography>
+                        </Box>
+                    </Link>
+
+                    <Link to={`/formularioTema`} className='cursor'>
+                        <Box mx={1} >
+                            <Typography variant="h6" color="inherit">
+                                Novo Tema
+                            </Typography>
+                        </Box>
+                    </Link>
+
+                    <Box mx={1} className='cursor' onClick={goLogout}>
+                        <Typography variant="h6" color="inherit">
+                            Logout
+                        </Typography>
+                    </Box>
+
+                </Box>
+
+            </Toolbar>
+        </AppBar >
     }
 
     return (
         <>
-            <Box m={2}>
-                <Card variant="outlined" >
-                    <CardContent>
-                        <Box justifyContent="center">
-                            <Typography color="textSecondary" gutterBottom>
-                                Deseja deletar a Postagem:
-                            </Typography>
-                            <Typography color="textSecondary" >
-                                {postagem?.titulo}
-                            </Typography>
-                        </Box>
-
-                    </CardContent>
-                    <CardActions>
-                        <Box display="flex" justifyContent="start" ml={1.0} mb={2} >
-                            <Box mx={2}>
-                                <Button onClick={sim} variant="contained" className="marginLeft" size='large' color="primary">
-                                    Sim
-                                </Button>
-                            </Box>
-                            <Box>
-                                <Button onClick={nao} variant="contained" size='large' color="secondary">
-                                    Não
-                                </Button>
-                            </Box>
-                        </Box>
-                    </CardActions>
-                </Card>
-            </Box>
+            {navbarComponent}
         </>
-    )
+    );
 }
