@@ -81,6 +81,6 @@ function Navbar() {
         </>
     )
 }
-
+toast.info
 
 export default Navbar;
